@@ -2,8 +2,10 @@ package webserver.http;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import webserver.http.headers.*;
-import webserver.http.message.Body;
+import webserver.http.headers.EntityHeaders;
+import webserver.http.headers.GeneralHeader;
+import webserver.http.headers.GeneralHeaders;
+import webserver.http.headers.RequestHeaders;
 import webserver.http.message.RequestLine;
 import webserver.http.message.RequestMessage;
 import webserver.http.message.RequestMethod;
@@ -13,7 +15,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
 
 import static webserver.Constants.CRLF;
@@ -27,10 +28,10 @@ public final class RequestParser {
   public static RequestMessage parse(InputStream ins) {
     try {
       var tins = typedInputStream(ins);
-      var requestLine = parseRequestLine(tins);
-      var headers = parseHeaders(tins);
-      var body = parseBody(ins, headers);
-      return new RequestMessage(requestLine, headers, body);
+      var request = new RequestMessage(parseRequestLine(tins));
+      parseHeaders(tins, request);
+      parseBody(ins, request);
+      return request;
     } catch (Exception e) {
       logger.error("Failed to parse HTTP response message");
       e.printStackTrace();
@@ -48,8 +49,7 @@ public final class RequestParser {
     return new RequestLine(method, uri, httpversion);
   }
 
-  private static Headers<RequestHeaders> parseHeaders(Scanner tins) {
-    var headers = new Headers<RequestHeaders>();
+  private static void parseHeaders(Scanner tins, RequestMessage request) {
     String line;
     while (!(line = tins.nextLine()).equals("")) {
       var headerline = line.split(":");
@@ -58,27 +58,26 @@ public final class RequestParser {
       GeneralHeader generalHeader;
       RequestHeaders specificHeader;
       if ((generalHeader = GeneralHeaders.getHeader(fieldName)) != null)
-        headers.add(generalHeader, fieldValue);
+        request.addHeader(generalHeader, fieldValue);
       else if ((generalHeader = EntityHeaders.getHeader(fieldName)) != null)
-        headers.add(generalHeader, fieldValue);
+        request.addHeader(generalHeader, fieldValue);
       else if ((specificHeader = RequestHeaders.getHeader(fieldName)) != null)
-        headers.add(specificHeader, fieldValue);
+        request.addHeader(specificHeader, fieldValue);
       else
         logger.warn(String.format("Header field name not recognized: %s", fieldName));
     }
-    return headers;
   }
 
-  private static Body parseBody(InputStream ins, Headers<RequestHeaders> headers) throws IOException {
-    if (!headers.contains(GeneralHeaders.TransferEncoding) &&
-      !headers.contains(EntityHeaders.ContentLength))
-      return new Body("");
-    int contentLength = Integer.parseInt(headers.get(EntityHeaders.ContentLength));
+  private static void parseBody(InputStream ins, RequestMessage request) throws IOException {
+    if (!request.headers().contains(GeneralHeaders.TransferEncoding) &&
+      !request.headers().contains(EntityHeaders.ContentLength))
+      return;
+    int contentLength = Integer.parseInt(request.headers().get(EntityHeaders.ContentLength));
     var body = new byte[contentLength];
     var total = 0;
     while (total < contentLength)
       total += ins.readNBytes(body, total, contentLength - total);
-    return new Body(new String(body, StandardCharsets.UTF_8));
+    request.addBody(body);
   }
 
   private static Scanner typedInputStream(InputStream ins) {

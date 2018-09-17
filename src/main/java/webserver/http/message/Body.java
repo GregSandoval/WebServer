@@ -1,14 +1,23 @@
 package webserver.http.message;
 
-public class Body {
-  public final String entityBody;
+import java.util.Arrays;
 
-  public Body(String entityBody) {
-    this.entityBody = entityBody;
+public class Body {
+  private byte[] entity;
+
+  public Body() {
   }
 
-  @Override
-  public String toString() {
-    return entityBody;
+  public Body(byte[] entity) {
+    this.entity = entity;
+  }
+
+  public void setBody(byte[] entity) {
+    this.entity = entity;
+  }
+
+
+  public byte[] getBody() {
+    return this.entity;
   }
 }

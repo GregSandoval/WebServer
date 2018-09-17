@@ -2,7 +2,7 @@ package webserver.threading;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import webserver.handlers.HandleRequest;
+import webserver.handlers.EchoURIHandler;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -25,7 +25,7 @@ public class WebServerRunnable extends WebConnectionRunnable {
     while (true) {
       var socket = serverSocket.accept();
       logger.debug(String.format("Accepted connection from: %s", socket));
-      executor.execute(new HandleRequest(socket));
+      executor.execute(new EchoURIHandler(socket));
     }
   }
 
