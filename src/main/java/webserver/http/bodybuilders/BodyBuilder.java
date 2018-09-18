@@ -1,4 +1,4 @@
-package webserver.http.message;
+package webserver.http.bodybuilders;
 
 import webserver.http.headers.GeneralHeader;
 import webserver.http.headers.SpecificHeader;

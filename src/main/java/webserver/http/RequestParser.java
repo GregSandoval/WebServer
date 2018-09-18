@@ -13,8 +13,7 @@ import webserver.http.message.RequestMethod;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.nio.file.Paths;
 import java.util.Scanner;
 
 import static webserver.Constants.CRLF;
@@ -39,12 +38,12 @@ public final class RequestParser {
     }
   }
 
-  private static RequestLine parseRequestLine(Scanner ins) throws URISyntaxException {
+  private static RequestLine parseRequestLine(Scanner ins) {
     var line = CRLF;
     while ((line = ins.nextLine()).equals(CRLF)) ;
     var rl = line.split(" ");
     var method = RequestMethod.valueOf(rl[0]);
-    var uri = new URI(rl[1]);
+    var uri = Paths.get(rl[1]);
     var httpversion = HttpVersion.getVersion(rl[2].toLowerCase());
     return new RequestLine(method, uri, httpversion);
   }

@@ -2,7 +2,6 @@ package webserver.http.bodybuilders;
 
 import webserver.http.headers.GeneralHeader;
 import webserver.http.headers.SpecificHeader;
-import webserver.http.message.BodyBuilder;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Map;

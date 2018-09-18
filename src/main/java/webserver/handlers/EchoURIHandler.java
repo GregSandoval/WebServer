@@ -27,7 +27,7 @@ public class EchoURIHandler extends WebConnectionRunnable {
       var request = RequestParser.parse(socket.getInputStream());
       logger.debug(String.valueOf("\n" + request));
       var response = new ResponseMessage(StatusCode._200)
-        .addBody(request.getStartLine().requestUri.toASCIIString())
+        .addBody(request.getStartLine().path.toString())
         .addHeader(ContentType, "text/html");
       logger.debug("Sending response:\n" + response.toString());
 

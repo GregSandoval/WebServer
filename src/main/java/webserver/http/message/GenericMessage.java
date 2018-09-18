@@ -1,5 +1,6 @@
 package webserver.http.message;
 
+import webserver.http.bodybuilders.BodyBuilder;
 import webserver.http.bodybuilders.PlainTextBodyBuilder;
 import webserver.http.headers.GeneralHeader;
 import webserver.http.headers.Headers;

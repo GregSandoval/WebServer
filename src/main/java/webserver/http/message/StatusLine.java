@@ -10,6 +10,10 @@ public class StatusLine extends StartLine {
   public final StatusCode statusCode;
   public final String reasonPhrase;
 
+  public StatusLine(StatusCode statusCode) {
+    this(HttpVersion.ONE_ONE, statusCode);
+  }
+
   public StatusLine(HttpVersion httpVersion, StatusCode statusCode) {
     this.httpVersion = httpVersion;
     this.statusCode = statusCode;

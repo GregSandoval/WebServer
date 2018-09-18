@@ -1,9 +1,7 @@
 package webserver.http.message;
 
-import java.util.Arrays;
-
 public class Body {
-  private byte[] entity;
+  private byte[] entity = new byte[0];
 
   public Body() {
   }
