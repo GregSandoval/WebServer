@@ -1,5 +1,8 @@
 package webserver.threading;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -7,6 +10,7 @@ import java.util.List;
 
 public abstract class WebConnectionRunnable implements Runnable {
   private final List<Closeable> closeables = new ArrayList<>();
+  private final Logger logger = LoggerFactory.getLogger(WebConnectionRunnable.class);
 
   public WebConnectionRunnable(Closeable... closeables) {
     this.closeables.addAll(List.of(closeables));
@@ -19,7 +23,7 @@ public abstract class WebConnectionRunnable implements Runnable {
       try {
         closeable.close();
       } catch (IOException e) {
-        e.printStackTrace();
+        logger.error("Problem closing : " + closeable + "; Error: " + e.getMessage());
       }
     }
   }
@@ -30,7 +34,7 @@ public abstract class WebConnectionRunnable implements Runnable {
       main();
       close();
     } catch (Exception e) {
-      e.printStackTrace();
+      logger.error("Problem processing Http Message: " + e.getMessage());
     }
   }
 }

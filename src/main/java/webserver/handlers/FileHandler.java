@@ -37,7 +37,6 @@ public class FileHandler extends WebConnectionRunnable {
   }
 
   private ResponseMessage getResponse(RequestMessage request) throws IOException {
-    printInfoLine(request);
     Path filePath = getFilePath(request);
     if (isPathTraversalAttack(filePath))
       return new ResponseMessage(StatusCode._400);
@@ -71,15 +70,6 @@ public class FileHandler extends WebConnectionRunnable {
         response.addHeader(EntityHeaders.Allow, "GET, HEAD, POST, PUT, DELETE, TRACE, OPTIONS, CONNECT");
     }
     return response;
-  }
-
-  private void printInfoLine(RequestMessage request) {
-    logger.info(String.valueOf(request.getStartLine().requestMethod) +
-      ' ' +
-      request.getStartLine().path +
-      ' ' +
-      request.headers().toString().replaceAll("[\r\n]", " ")
-    );
   }
 
   private boolean isPathTraversalAttack(Path filePath) {

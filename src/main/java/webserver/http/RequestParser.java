@@ -30,12 +30,21 @@ public final class RequestParser {
       var request = new RequestMessage(parseRequestLine(tins));
       parseHeaders(tins, request);
       parseBody(ins, request);
+      printInfoLine(request);
       return request;
     } catch (Exception e) {
-      logger.error("Failed to parse HTTP response message");
-      e.printStackTrace();
+      logger.error("Failed to parse HTTP response message: " + e.getMessage());
       return null;
     }
+  }
+
+  private static void printInfoLine(RequestMessage request) {
+    logger.info(String.valueOf(request.getStartLine().requestMethod) +
+      ' ' +
+      request.getStartLine().path +
+      ' ' +
+      request.headers().toString().replaceAll("[\r\n]", " ")
+    );
   }
 
   private static RequestLine parseRequestLine(Scanner ins) {
@@ -63,7 +72,7 @@ public final class RequestParser {
       else if ((specificHeader = RequestHeaders.getHeader(fieldName)) != null)
         request.addHeader(specificHeader, fieldValue);
       else
-        logger.warn(String.format("Header field name not recognized: %s", fieldName));
+        logger.warn("Header field name not recognized: " + fieldName);
     }
   }
 
