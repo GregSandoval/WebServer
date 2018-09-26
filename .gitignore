@@ -24,6 +24,7 @@ release.properties
 
 .gradle
 gradle/
+META-INF
 
 ##########################
 ## IntelliJ

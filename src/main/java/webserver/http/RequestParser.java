@@ -43,7 +43,7 @@ public final class RequestParser {
     while ((line = ins.nextLine()).equals(CRLF)) ;
     var rl = line.split(" ");
     var method = RequestMethod.valueOf(rl[0]);
-    var uri = Paths.get(rl[1]);
+    var uri = Paths.get(rl[1]).normalize();
     var httpversion = HttpVersion.getVersion(rl[2].toLowerCase());
     return new RequestLine(method, uri, httpversion);
   }

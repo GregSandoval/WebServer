@@ -10,6 +10,7 @@ public class Main {
 
   public static void main(String[] args) throws IOException {
     var serverManager = new WebServerManager();
+    var serverSettings = WebServerSettings.instance();
     logger.info("Press Enter key to stop server");
     int ignored = System.in.read();
   }

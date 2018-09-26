@@ -12,7 +12,7 @@ public abstract class WebConnectionRunnable implements Runnable {
     this.closeables.addAll(List.of(closeables));
   }
 
-  public abstract void main() throws IOException;
+  public abstract void main() throws IOException, Exception;
 
   private void close() {
     for (var closeable : closeables) {

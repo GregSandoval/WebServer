@@ -1,5 +1,8 @@
 package webserver.handlers;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import webserver.WebServerSettings;
 import webserver.http.RequestParser;
 import webserver.http.bodybuilders.FileBodyBuilder;
 import webserver.http.headers.EntityHeaders;
@@ -11,10 +14,14 @@ import webserver.threading.WebConnectionRunnable;
 import java.io.IOException;
 import java.net.Socket;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class FileHandler extends WebConnectionRunnable {
   private final Socket socket;
+  private final Logger logger = LoggerFactory.getLogger(FileHandler.class);
+  private final Path rootDir = Paths.get((String) WebServerSettings.instance().properties.get("dir")).normalize().toAbsolutePath();
 
   public FileHandler(Socket socket) {
     super(socket);
@@ -22,12 +29,23 @@ public class FileHandler extends WebConnectionRunnable {
   }
 
   @Override
-  public void main() throws IOException {
+  public void main() throws Exception {
     var request = RequestParser.parse(socket.getInputStream());
+    var response = getResponse(request);
+    for (byte[] bytes : response.getBytes())
+      socket.getOutputStream().write(bytes);
+  }
+
+  private ResponseMessage getResponse(RequestMessage request) throws IOException {
+    printInfoLine(request);
+    Path filePath = getFilePath(request);
+    if (isPathTraversalAttack(filePath))
+      return new ResponseMessage(StatusCode._400);
+
     ResponseMessage response;
     switch (request.getStartLine().requestMethod) {
       case GET:
-        response = getFile(request);
+        response = getFile(filePath);
         break;
       case HEAD:
         // response = getFileHead(request);
@@ -52,8 +70,25 @@ public class FileHandler extends WebConnectionRunnable {
         response = new ResponseMessage(StatusCode._405);
         response.addHeader(EntityHeaders.Allow, "GET, HEAD, POST, PUT, DELETE, TRACE, OPTIONS, CONNECT");
     }
-    for (byte[] bytes : response.getBytes())
-      socket.getOutputStream().write(bytes);
+    return response;
+  }
+
+  private void printInfoLine(RequestMessage request) {
+    logger.info(String.valueOf(request.getStartLine().requestMethod) +
+      ' ' +
+      request.getStartLine().path +
+      ' ' +
+      request.headers().toString().replaceAll("[\r\n]", " ")
+    );
+  }
+
+  private boolean isPathTraversalAttack(Path filePath) {
+    return !filePath.startsWith(rootDir);
+  }
+
+  private Path getFilePath(RequestMessage request) {
+    Path relative = request.getStartLine().path;
+    return Paths.get(rootDir.toString(), relative.toString());
   }
 
   private ResponseMessage fileOptions(RequestMessage request) {
@@ -80,8 +115,7 @@ public class FileHandler extends WebConnectionRunnable {
     return null;
   }
 
-  public ResponseMessage getFile(RequestMessage request) throws IOException {
-    var path = request.getStartLine().path;
+  public ResponseMessage getFile(Path path) throws IOException {
     var response = createResponse(path);
     if (response.getStartLine().statusCode != StatusCode._200)
       return response;
@@ -89,8 +123,7 @@ public class FileHandler extends WebConnectionRunnable {
   }
 
   private ResponseMessage createResponse(Path path) {
-    System.out.println(path.toAbsolutePath());
-    if (!Files.isRegularFile(path))
+    if (!Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS))
       return new ResponseMessage(StatusCode._404);
     if (!Files.isReadable(path))
       return new ResponseMessage(StatusCode._403);

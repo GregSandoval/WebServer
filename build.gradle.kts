@@ -1,11 +1,21 @@
 plugins {
     java
+    id("com.github.johnrengelman.shadow") version "2.0.2"
+}
+
+tasks.withType<Jar> {
+    manifest {
+        attributes(mapOf(
+                "Main-Class" to "webserver.Main"
+        ))
+    }
 }
 
 version = "1.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
+    jcenter()
 }
 
 dependencies {
