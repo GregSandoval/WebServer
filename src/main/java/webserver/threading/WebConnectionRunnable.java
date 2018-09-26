@@ -12,7 +12,7 @@ public abstract class WebConnectionRunnable implements Runnable {
     this.closeables.addAll(List.of(closeables));
   }
 
-  public abstract void main() throws IOException, Exception;
+  public abstract void main() throws Exception;
 
   private void close() {
     for (var closeable : closeables) {
@@ -22,7 +22,6 @@ public abstract class WebConnectionRunnable implements Runnable {
         e.printStackTrace();
       }
     }
-    System.out.println("Closed " + this);
   }
 
   @Override
