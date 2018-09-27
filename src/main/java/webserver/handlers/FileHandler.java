@@ -3,48 +3,42 @@ package webserver.handlers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import webserver.WebServerSettings;
-import webserver.http.RequestParser;
 import webserver.http.bodybuilders.FileBodyBuilder;
 import webserver.http.headers.EntityHeaders;
 import webserver.http.message.RequestMessage;
 import webserver.http.message.ResponseMessage;
 import webserver.http.message.StatusCode;
-import webserver.threading.WebConnectionRunnable;
 
 import java.io.IOException;
-import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.function.Function;
 
-public class FileHandler extends WebConnectionRunnable {
-  private final Socket socket;
+public class FileHandler implements Function<RequestMessage, ResponseMessage> {
   private final Logger logger = LoggerFactory.getLogger(FileHandler.class);
   private final Path rootDir = Paths.get((String) WebServerSettings.instance().properties.get("dir")).normalize().toAbsolutePath();
 
-  public FileHandler(Socket socket) {
-    super(socket);
-    this.socket = socket;
-  }
+  public ResponseMessage apply(RequestMessage request) {
+    Path path = getPath(request);
 
-  @Override
-  public void main() throws Exception {
-    var request = RequestParser.parse(socket.getInputStream());
-    var response = getResponse(request);
-    for (byte[] bytes : response.getBytes())
-      socket.getOutputStream().write(bytes);
-  }
-
-  private ResponseMessage getResponse(RequestMessage request) throws IOException {
-    Path filePath = getFilePath(request);
-    if (isPathTraversalAttack(filePath))
+    if (outsideWebDirectory(path))
       return new ResponseMessage(StatusCode._400);
+
+    if (!Files.exists(path, LinkOption.NOFOLLOW_LINKS))
+      return new ResponseMessage(StatusCode._404);
+
+    if (!Files.isReadable(path))
+      return new ResponseMessage(StatusCode._403);
+
+    if (!Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS))
+      return new ResponseMessage(StatusCode._401);
 
     ResponseMessage response;
     switch (request.getStartLine().requestMethod) {
       case GET:
-        response = getFile(filePath);
+        response = getFile(path);
         break;
       case HEAD:
         // response = getFileHead(request);
@@ -72,13 +66,8 @@ public class FileHandler extends WebConnectionRunnable {
     return response;
   }
 
-  private boolean isPathTraversalAttack(Path filePath) {
+  private boolean outsideWebDirectory(Path filePath) {
     return !filePath.startsWith(rootDir);
-  }
-
-  private Path getFilePath(RequestMessage request) {
-    Path relative = request.getStartLine().path;
-    return Paths.get(rootDir.toString(), relative.toString());
   }
 
   private ResponseMessage fileOptions(RequestMessage request) {
@@ -105,18 +94,19 @@ public class FileHandler extends WebConnectionRunnable {
     return null;
   }
 
-  public ResponseMessage getFile(Path path) throws IOException {
-    var response = createResponse(path);
-    if (response.getStartLine().statusCode != StatusCode._200)
+  private ResponseMessage getFile(Path path) {
+    try {
+      var response = new ResponseMessage(StatusCode._200);
+      response.addBody(new FileBodyBuilder(path));
       return response;
-    return response.addBody(new FileBodyBuilder(path));
+    } catch (IOException e) {
+      logger.error("Trouble reading file: " + path.getFileName() + "; error: " + e.getMessage());
+      return new ResponseMessage(StatusCode._500);
+    }
   }
 
-  private ResponseMessage createResponse(Path path) {
-    if (!Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS))
-      return new ResponseMessage(StatusCode._404);
-    if (!Files.isReadable(path))
-      return new ResponseMessage(StatusCode._403);
-    return new ResponseMessage(StatusCode._200);
+  private Path getPath(RequestMessage request) {
+    Path relative = request.getStartLine().path;
+    return Paths.get(rootDir.toString(), relative.toString());
   }
 }
