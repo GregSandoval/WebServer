@@ -7,6 +7,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 import static webserver.http.headers.EntityHeaders.ContentLength;
+import static webserver.http.headers.EntityHeaders.ContentType;
 
 public class PlainTextBodyBuilder<H extends SpecificHeader> implements BodyBuilder<H> {
   private byte[] bytes;
@@ -22,7 +23,7 @@ public class PlainTextBodyBuilder<H extends SpecificHeader> implements BodyBuild
 
   @Override
   public Map<GeneralHeader, String> generalHeaders() {
-    return Map.of(ContentLength, String.valueOf(bytes.length));
+    return Map.of(ContentLength, String.valueOf(bytes.length), ContentType, "text/html");
   }
 
   @Override

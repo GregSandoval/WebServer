@@ -20,6 +20,10 @@ public class FileHandler implements Function<RequestMessage, ResponseMessage> {
   private final Logger logger = LoggerFactory.getLogger(FileHandler.class);
   private final Path rootDir = Paths.get((String) WebServerSettings.instance().properties.get("dir")).normalize().toAbsolutePath();
 
+  public FileHandler() {
+    logger.info("Serving files located in directory: " + Paths.get((String) WebServerSettings.instance().properties.get("dir")).normalize().toAbsolutePath());
+  }
+
   public ResponseMessage apply(RequestMessage request) {
     Path path = getPath(request);
 

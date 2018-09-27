@@ -29,6 +29,7 @@ public class RequestProcessorRunnable implements Runnable {
       final var os = new BufferedOutputStream(socket.getOutputStream());
       for (var bytes : response.getBytes())
         os.write(bytes);
+      os.flush();
     } catch (IOException e) {
       logger.error("Could not process request, reason: " + e.getMessage());
     }
