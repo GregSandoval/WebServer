@@ -45,8 +45,8 @@ public class FileHandler implements Function<RequestMessage, ResponseMessage> {
         response = getFile(path);
         break;
       case HEAD:
-        // response = getFileHead(request);
-        // break;
+        response = getFileHead(path);
+        break;
       case POST:
         // response = postFile(request);
         // break;
@@ -94,8 +94,15 @@ public class FileHandler implements Function<RequestMessage, ResponseMessage> {
     return null;
   }
 
-  private ResponseMessage getFileHead(RequestMessage request) {
-    return null;
+  private ResponseMessage getFileHead(Path path) {
+    try {
+      var response = new ResponseMessage(StatusCode._200);
+      response.addBody(new FileBodyBuilder(path, false));
+      return response;
+    } catch (IOException e) {
+      logger.error("Trouble reading file: " + path.getFileName() + "; error: " + e.getMessage());
+      return new ResponseMessage(StatusCode._500);
+    }
   }
 
   private ResponseMessage getFile(Path path) {

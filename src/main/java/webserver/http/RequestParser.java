@@ -30,22 +30,13 @@ public final class RequestParser {
       var request = new RequestMessage(parseRequestLine(tins));
       parseHeaders(tins, request);
       parseBody(ins, request);
-      printInfoLine(request);
       return request;
     } catch (Exception e) {
-      logger.error("Failed to parse HTTP response message: " + e.getMessage());
+      logger.info("Failed to parse HTTP response message: " + e.getMessage());
       return null;
     }
   }
 
-  private static void printInfoLine(RequestMessage request) {
-    logger.info(String.valueOf(request.getStartLine().requestMethod) +
-      ' ' +
-      request.getStartLine().path +
-      ' ' +
-      request.headers().toString().replaceAll("[\r\n]", " ")
-    );
-  }
 
   private static RequestLine parseRequestLine(Scanner ins) {
     var line = CRLF;

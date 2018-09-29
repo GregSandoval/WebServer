@@ -16,7 +16,14 @@ public class FileBodyBuilder implements BodyBuilder<ResponseHeaders> {
   private Map<ResponseHeaders, String> specificHeaders = Map.of();
 
   public FileBodyBuilder(Path path) throws IOException {
-    body = Files.readAllBytes(path);
+    this(path, true);
+  }
+
+  public FileBodyBuilder(Path path, boolean loadFileContents) throws IOException {
+    if (loadFileContents)
+      body = Files.readAllBytes(path);
+    else
+      body = new byte[0];
     String contentType = Files.probeContentType(path);
     generalHeaders.put(EntityHeaders.ContentType, contentType);
     generalHeaders.put(EntityHeaders.ContentLength, String.valueOf(body.length));

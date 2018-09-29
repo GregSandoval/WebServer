@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import webserver.http.RequestParser;
 import webserver.http.message.RequestMessage;
 import webserver.http.message.ResponseMessage;
+import webserver.http.message.StatusCode;
 
 import java.io.BufferedOutputStream;
 import java.io.IOException;
@@ -25,7 +26,16 @@ public class RequestProcessorRunnable implements Runnable {
   public void run() {
     try (socket) {
       final var request = RequestParser.parse(socket.getInputStream());
-      final var response = processor.apply(request);
+      final ResponseMessage response;
+
+      if (request == null) // bad request
+        response = new ResponseMessage(StatusCode._400);
+      else
+        response = processor.apply(request);
+
+      if (request != null)
+        printInfoLine(request, response);
+
       final var os = new BufferedOutputStream(socket.getOutputStream());
       for (var bytes : response.getBytes())
         os.write(bytes);
@@ -33,5 +43,16 @@ public class RequestProcessorRunnable implements Runnable {
     } catch (IOException e) {
       logger.error("Could not process request, reason: " + e.getMessage());
     }
+  }
+
+  private void printInfoLine(RequestMessage request, ResponseMessage response) {
+    logger.info(
+      response.getStartLine().statusCode + " " + response.getStartLine().reasonPhrase + " " +
+        String.valueOf(request.getStartLine().requestMethod) +
+        ' ' +
+        request.getStartLine().path +
+        ' ' +
+        request.headers().toString().replaceAll("[\r\n]", " ")
+    );
   }
 }
