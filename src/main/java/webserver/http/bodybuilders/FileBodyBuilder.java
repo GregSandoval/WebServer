@@ -24,9 +24,8 @@ public class FileBodyBuilder implements BodyBuilder<ResponseHeaders> {
       body = Files.readAllBytes(path);
     else
       body = new byte[0];
-    String contentType = Files.probeContentType(path);
-    generalHeaders.put(EntityHeaders.ContentType, contentType);
-    generalHeaders.put(EntityHeaders.ContentLength, String.valueOf(body.length));
+    generalHeaders.put(EntityHeaders.ContentType, Files.probeContentType(path));
+    generalHeaders.put(EntityHeaders.ContentLength, String.valueOf(Files.size(path)));
   }
 
   @Override
