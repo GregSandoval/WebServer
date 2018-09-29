@@ -80,8 +80,9 @@ public final class RequestParser {
   }
 
   private static Scanner typedInputStream(InputStream ins) {
-    return new Scanner(new BufferedInputStream(ins));
+    var scanner = new Scanner(new BufferedInputStream(ins));
+    scanner.useDelimiter(CRLF);
+    return scanner;
   }
-
 
 }

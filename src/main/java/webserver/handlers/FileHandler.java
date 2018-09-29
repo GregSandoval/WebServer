@@ -82,15 +82,15 @@ public class FileHandler implements Function<RequestMessage, ResponseMessage> {
     return null;
   }
 
-  private ResponseMessage deleteFile(RequestMessage request) {
-    return null;
-  }
-
   private ResponseMessage putFile(RequestMessage request) {
     return null;
   }
 
   private ResponseMessage postFile(RequestMessage request) {
+    return null;
+  }
+
+  private ResponseMessage deleteFile(RequestMessage request) {
     return null;
   }
 
