@@ -4,7 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public enum HttpVersion {
-  ONE_ONE("HTTP/1.1");
+  ONE_ONE("HTTP/1.1"),
+  ONE_ZERO("HTTP/1.0");
 
   private static Map<String, HttpVersion> versions = new HashMap<>();
   private final String value;

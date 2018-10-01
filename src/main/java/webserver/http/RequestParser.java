@@ -12,7 +12,6 @@ import webserver.http.message.RequestMethod;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.Scanner;
 
@@ -24,9 +23,8 @@ public final class RequestParser {
   private RequestParser() {
   }
 
-  public static RequestMessage parse(InputStream ins) {
+  public static RequestMessage parse(BufferedInputStream ins, Scanner tins) {
     try {
-      var tins = typedInputStream(ins);
       var request = new RequestMessage(parseRequestLine(tins));
       parseHeaders(tins, request);
       parseBody(ins, request);
@@ -36,7 +34,6 @@ public final class RequestParser {
       return null;
     }
   }
-
 
   private static RequestLine parseRequestLine(Scanner ins) {
     var line = CRLF;
@@ -67,7 +64,7 @@ public final class RequestParser {
     }
   }
 
-  private static void parseBody(InputStream ins, RequestMessage request) throws IOException {
+  private static void parseBody(BufferedInputStream ins, RequestMessage request) throws IOException {
     if (!request.headers().contains(GeneralHeaders.TransferEncoding) &&
       !request.headers().contains(EntityHeaders.ContentLength))
       return;
@@ -78,11 +75,4 @@ public final class RequestParser {
       total += ins.readNBytes(body, total, contentLength - total);
     request.addBody(body);
   }
-
-  private static Scanner typedInputStream(InputStream ins) {
-    var scanner = new Scanner(new BufferedInputStream(ins));
-    scanner.useDelimiter(CRLF);
-    return scanner;
-  }
-
 }
