@@ -25,8 +25,8 @@ public class Main {
     var fileServer = new WebServer(8080, new FileHandler());
 
     var restServer = new RestServer(9999)
-      .get("/", requestMessage -> new ResponseMessage(StatusCode._200).addBody("Nice!"))
-      .get("/helloworld", requestMessage -> new ResponseMessage(StatusCode._200).addBody("HELLO WORLD"));
+      .get("/", request -> new ResponseMessage(StatusCode._200).addBody("Nice!"))
+      .get("/helloworld", request -> new ResponseMessage(StatusCode._200).addBody("HELLO WORLD"));
 
     var serverSettings = WebServerSettings.instance();
     logger.info("Press Enter key to stop server");

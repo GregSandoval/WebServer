@@ -60,12 +60,11 @@ public class RestServer {
 
   private class RestProcessor implements Function<RequestMessage, ResponseMessage> {
     @Override
-    public ResponseMessage apply(RequestMessage requestMessage) {
-      var startline = requestMessage.getStartLine();
-      var entry = Map.entry(startline.requestMethod.name(), startline.path.toString().replace("\\", "/"));
+    public ResponseMessage apply(RequestMessage request) {
+      var entry = Map.entry(request.getMethod().name(), request.getPath().toString().replace("\\", "/"));
       var processor = processors.get(entry);
       if (processor != null)
-        return processor.apply(requestMessage);
+        return processor.apply(request);
       return new ResponseMessage(StatusCode._404);
     }
   }

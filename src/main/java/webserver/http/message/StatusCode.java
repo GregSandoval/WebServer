@@ -43,15 +43,39 @@ public enum StatusCode {
   _505("HTTP Version not supported");
 
   public final String description;
-  private final String code;
+  private final int code;
 
   StatusCode(String description) {
     this.description = description;
-    this.code = name().substring(1);
+    this.code = Integer.parseInt(name().substring(1));
+  }
+
+  public boolean isInformationalCode() {
+    return code < 200;
+  }
+
+  public boolean isSuccessCode() {
+    return code >= 200 && code < 300;
+  }
+
+  public boolean isRedirectionCode() {
+    return code >= 300 && code < 400;
+  }
+
+  public boolean isClientError() {
+    return code >= 400 && code < 500;
+  }
+
+  public boolean isServerError() {
+    return code >= 500 && code < 600;
+  }
+
+  public int toCode() {
+    return code;
   }
 
   @Override
   public String toString() {
-    return code;
+    return description;
   }
 }

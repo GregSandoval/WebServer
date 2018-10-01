@@ -13,4 +13,16 @@ public class ResponseMessage extends GenericMessage<ResponseMessage, StatusLine,
     super(statusLine);
   }
 
+  public HttpVersion getHttpVersion() {
+    return getStartLine().httpVersion;
+  }
+
+  public StatusCode getStatusCode() {
+    return getStartLine().statusCode;
+  }
+
+  public String getReasonPhrase() {
+    return getStartLine().reasonPhrase;
+  }
+
 }
