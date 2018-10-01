@@ -26,6 +26,14 @@ public class GenericMessage<M extends GenericMessage<M, S, H>, S extends StartLi
     return headers;
   }
 
+  public String getHeader(H header) {
+    return headers.get(header);
+  }
+
+  public String getHeader(GeneralHeader header) {
+    return headers.get(header);
+  }
+
   public M addHeader(H header, String value) {
     headers.add(header, value);
     return (M) this;

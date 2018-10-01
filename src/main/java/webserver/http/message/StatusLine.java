@@ -22,6 +22,6 @@ public class StatusLine extends StartLine {
 
   @Override
   public String toString() {
-    return httpVersion + SP + statusCode + SP + reasonPhrase + CRLF;
+    return httpVersion + SP + statusCode.toCode() + SP + reasonPhrase + CRLF;
   }
 }

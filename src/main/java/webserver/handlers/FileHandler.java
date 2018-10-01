@@ -40,7 +40,7 @@ public class FileHandler implements Function<RequestMessage, ResponseMessage> {
       return new ResponseMessage(StatusCode._401);
 
     ResponseMessage response;
-    switch (request.getStartLine().requestMethod) {
+    switch (request.getMethod()) {
       case GET:
         response = getFile(path);
         break;
@@ -117,7 +117,6 @@ public class FileHandler implements Function<RequestMessage, ResponseMessage> {
   }
 
   private Path getPath(RequestMessage request) {
-    Path relative = request.getStartLine().path;
-    return Paths.get(rootDir.toString(), relative.toString());
+    return Paths.get(rootDir.toString(), request.getPath().toString());
   }
 }

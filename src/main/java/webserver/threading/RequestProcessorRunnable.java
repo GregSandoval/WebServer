@@ -42,11 +42,8 @@ public class RequestProcessorRunnable implements Runnable {
           response = new ResponseMessage(StatusCode._400);
         else
           response = processor.apply(request);
-        var resHeaders = response.headers();
-        var resStarLin = response.getStartLine();
 
-        // signal close when not using HTTP 1.1 or if request is bad. Otherwise send keep alive.
-        if (resHeaders.get(Connection) == null && request != null && resStarLin.httpVersion == HttpVersion.ONE_ONE && !resStarLin.statusCode.toString().startsWith("4") && !resStarLin.statusCode.toString().startsWith("5"))
+        if (supportsKeepAlive(request, response))
           response.addHeader(Connection, "keep-alive");
         else
           response.addHeader(Connection, "close");
@@ -63,12 +60,20 @@ public class RequestProcessorRunnable implements Runnable {
     }
   }
 
+  private boolean supportsKeepAlive(RequestMessage request, ResponseMessage response) {
+    return response.getHeader(Connection) == null // processor already decided this option
+      && request != null // bad requests = auto close connection
+      && response.getHttpVersion() == HttpVersion.ONE_ONE // Http 1.1 prefers keep-alive
+      && !response.getStatusCode().isClientError() // close after all error responses.
+      && !response.getStatusCode().isServerError();
+  }
+
   private void printInfoLine(RequestMessage request, ResponseMessage response) {
     logger.info(
-      response.getStartLine().statusCode + " " + response.getStartLine().reasonPhrase + " " +
-        String.valueOf(request.getStartLine().requestMethod) +
+      response.getStatusCode().toCode() + " " + response.getReasonPhrase() + " " +
+        String.valueOf(request.getMethod()) +
         ' ' +
-        request.getStartLine().path +
+        request.getPath() +
         ' ' +
         request.headers().toString().replaceAll("[\r\n]", " ")
     );
