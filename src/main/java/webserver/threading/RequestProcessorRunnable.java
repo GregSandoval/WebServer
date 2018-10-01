@@ -42,9 +42,11 @@ public class RequestProcessorRunnable implements Runnable {
           response = new ResponseMessage(StatusCode._400);
         else
           response = processor.apply(request);
+        var resHeaders = response.headers();
+        var resStarLin = response.getStartLine();
 
         // signal close when not using HTTP 1.1 or if request is bad. Otherwise send keep alive.
-        if (response.headers().get(Connection) == null && request != null && request.getStartLine().httpVersion == HttpVersion.ONE_ONE)
+        if (resHeaders.get(Connection) == null && request != null && resStarLin.httpVersion == HttpVersion.ONE_ONE && !resStarLin.statusCode.toString().startsWith("4") && !resStarLin.statusCode.toString().startsWith("5"))
           response.addHeader(Connection, "keep-alive");
         else
           response.addHeader(Connection, "close");
