@@ -72,7 +72,7 @@ public final class RequestParser {
     var body = new byte[contentLength];
     var total = 0;
     while (total < contentLength)
-      total += ins.readNBytes(body, total, contentLength - total);
+      total += ins.read(body, total, contentLength - total);
     request.addBody(body);
   }
 }
