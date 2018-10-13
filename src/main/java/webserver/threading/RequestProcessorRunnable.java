@@ -12,6 +12,7 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.Optional;
 import java.util.Scanner;
 import java.util.function.Function;
 
@@ -30,39 +31,43 @@ public class RequestProcessorRunnable implements Runnable {
   @Override
   public void run() {
     try (socket) {
-      RequestMessage request;
+      Optional<RequestMessage> request;
       ResponseMessage response;
       final BufferedInputStream bis = new BufferedInputStream(socket.getInputStream());
       final BufferedOutputStream bos = new BufferedOutputStream(socket.getOutputStream());
       Scanner scanner = new Scanner(bis);
       do {
         request = RequestParser.parse(bis, scanner);
+        response = createResponse(request);
 
-        if (request == null)
-          response = new ResponseMessage(StatusCode._400);
-        else
-          response = processor.apply(request);
-
-        if (supportsKeepAlive(request, response))
-          response.addHeader(Connection, "keep-alive");
-        else
-          response.addHeader(Connection, "close");
-
-        if (request != null)
-          printInfoLine(request, response);
+        if (request.isPresent())
+          printInfoLine(request.get(), response);
 
         for (var bytes : response.getBytes())
           bos.write(bytes);
         bos.flush();
-      } while (response.headers().get(Connection).equals("keep-alive"));
+      } while (response.getHeader(Connection).equals("keep-alive"));
     } catch (IOException e) {
       logger.error("Could not process request, reason: " + e.getMessage());
     }
   }
 
-  private boolean supportsKeepAlive(RequestMessage request, ResponseMessage response) {
+  private ResponseMessage createResponse(Optional<RequestMessage> request) {
+    ResponseMessage response;
+    if (!request.isPresent())
+      response = new ResponseMessage(StatusCode._400);
+    else
+      response = processor.apply(request.get());
+
+    if (request.isPresent() && supportsKeepAlive(response))
+      response.addHeader(Connection, "keep-alive");
+    else
+      response.addHeader(Connection, "close");
+    return response;
+  }
+
+  private boolean supportsKeepAlive(ResponseMessage response) {
     return response.getHeader(Connection) == null // processor already decided this option
-      && request != null // bad requests = auto close connection
       && response.getHttpVersion() == HttpVersion.ONE_ONE // Http 1.1 prefers keep-alive
       && !response.getStatusCode().isClientError() // close after all error responses.
       && !response.getStatusCode().isServerError();

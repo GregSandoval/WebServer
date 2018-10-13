@@ -13,6 +13,7 @@ import webserver.http.message.RequestMethod;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.Optional;
 import java.util.Scanner;
 
 import static webserver.Constants.CRLF;
@@ -23,15 +24,15 @@ public final class RequestParser {
   private RequestParser() {
   }
 
-  public static RequestMessage parse(BufferedInputStream ins, Scanner tins) {
+  public static Optional<RequestMessage> parse(BufferedInputStream ins, Scanner tins) {
     try {
       var request = new RequestMessage(parseRequestLine(tins));
       parseHeaders(tins, request);
       parseBody(ins, request);
-      return request;
+      return Optional.of(request);
     } catch (Exception e) {
       logger.info("Failed to parse HTTP response message: " + e.getMessage());
-      return null;
+      return Optional.empty();
     }
   }
 

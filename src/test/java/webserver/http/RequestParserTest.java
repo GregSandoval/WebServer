@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
 
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.fail;
 
 public class RequestParserTest {
@@ -27,7 +27,7 @@ public class RequestParserTest {
       try (var bisn = new BufferedInputStream(new ByteArrayInputStream(request.getBytes(StandardCharsets.UTF_8)))) {
         var scanner = new Scanner(bisn);
         var obj = RequestParser.parse(bisn, scanner);
-        assertNull(obj);
+        assertFalse(obj.isPresent());
       } catch (IOException e) {
         fail("IOException on okay input stream.");
         e.printStackTrace();
