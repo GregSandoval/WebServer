@@ -66,10 +66,10 @@ public final class RequestParser {
   }
 
   private static void parseBody(BufferedInputStream ins, RequestMessage request) throws IOException {
-    if (!request.headers().contains(GeneralHeaders.TransferEncoding) &&
-      !request.headers().contains(EntityHeaders.ContentLength))
+    if (!request.containsHeader(GeneralHeaders.TransferEncoding) &&
+      !request.containsHeader(EntityHeaders.ContentLength))
       return;
-    int contentLength = Integer.parseInt(request.headers().get(EntityHeaders.ContentLength));
+    int contentLength = Integer.parseInt(request.getHeader(EntityHeaders.ContentLength));
     var body = new byte[contentLength];
     var total = 0;
     while (total < contentLength)

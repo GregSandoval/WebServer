@@ -22,8 +22,16 @@ public class GenericMessage<M extends GenericMessage<M, S, H>, S extends StartLi
     this.startLine = startLine;
   }
 
-  public Headers<H> headers() {
+  public Headers<H> headers(){
     return headers;
+  }
+
+  public boolean containsHeader(H header) {
+    return headers.contains(header);
+  }
+
+  public boolean containsHeader(GeneralHeader header) {
+    return headers.contains(header);
   }
 
   public String getHeader(H header) {
