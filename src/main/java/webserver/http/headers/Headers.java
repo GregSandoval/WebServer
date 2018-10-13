@@ -1,35 +1,41 @@
 package webserver.http.headers;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 import static webserver.Constants.CRLF;
 
 public class Headers<H extends SpecificHeader> {
-  private Map<GeneralHeader, String> generalHeaders = new HashMap<>();
-  private Map<H, String> specificHeaders = new HashMap<>();
+  private Map<GeneralHeader, List<String>> generalHeaders = new HashMap<>();
+  private Map<H, List<String>> specificHeaders = new HashMap<>();
+  private Function<H, List<String>> lazyHList = (g) -> new ArrayList<>();
+  private Function<GeneralHeader, List<String>> lazyGList = (h) -> new ArrayList<>();
 
-  public String add(GeneralHeader header, String value) {
-    return generalHeaders.put(header, value);
+
+  public void add(GeneralHeader header, String value) {
+    generalHeaders.computeIfAbsent(header, lazyGList).add(value);
   }
 
-  public String add(H header, String value) {
-    return specificHeaders.put(header, value);
+  public void add(H header, String value) {
+    specificHeaders.computeIfAbsent(header, lazyHList).add(value);
   }
 
-  public String remove(GeneralHeader header) {
+  public List<String> remove(GeneralHeader header) {
     return generalHeaders.remove(header);
   }
 
-  public String remove(H header) {
+  public List<String> remove(H header) {
     return specificHeaders.remove(header);
   }
 
-  public String get(H header) {
+  public List<String> get(H header) {
     return specificHeaders.get(header);
   }
 
-  public String get(GeneralHeader header) {
+  public List<String> get(GeneralHeader header) {
     return generalHeaders.get(header);
   }
 
@@ -49,14 +55,14 @@ public class Headers<H extends SpecificHeader> {
       builder
         .append(entry.getKey())
         .append(':')
-        .append(entry.getValue())
+        .append(String.join(",", entry.getValue()))
         .append(CRLF);
 
     for (var entry : specificHeaders.entrySet())
       builder
         .append(entry.getKey())
         .append(':')
-        .append(entry.getValue())
+        .append(String.join(",", entry.getValue()))
         .append(CRLF);
 
     return builder.toString();

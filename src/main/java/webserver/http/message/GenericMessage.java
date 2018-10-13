@@ -8,6 +8,7 @@ import webserver.http.headers.SpecificHeader;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import static webserver.Constants.CRLF;
@@ -22,7 +23,7 @@ public class GenericMessage<M extends GenericMessage<M, S, H>, S extends StartLi
     this.startLine = startLine;
   }
 
-  public Headers<H> headers(){
+  public Headers<H> headers() {
     return headers;
   }
 
@@ -34,11 +35,11 @@ public class GenericMessage<M extends GenericMessage<M, S, H>, S extends StartLi
     return headers.contains(header);
   }
 
-  public String getHeader(H header) {
+  public List<String> getHeader(H header) {
     return headers.get(header);
   }
 
-  public String getHeader(GeneralHeader header) {
+  public List<String> getHeader(GeneralHeader header) {
     return headers.get(header);
   }
 
@@ -104,9 +105,6 @@ public class GenericMessage<M extends GenericMessage<M, S, H>, S extends StartLi
 
     if (body.getBody() != null)
       builder.append(Arrays.toString(body.getBody()));
-
-    else
-      builder.append("[no body]");
     return builder.toString();
   }
 
@@ -117,5 +115,15 @@ public class GenericMessage<M extends GenericMessage<M, S, H>, S extends StartLi
 
   public S getStartLine() {
     return startLine;
+  }
+
+  public void addHeaders(GeneralHeader generalHeader, String[] values) {
+    for (var value : values)
+      addHeader(generalHeader, value);
+  }
+
+  public void addHeaders(H specificHeader, String[] values) {
+    for (var value : values)
+      addHeader(specificHeader, value);
   }
 }

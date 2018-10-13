@@ -31,7 +31,7 @@ public final class RequestParser {
       parseBody(ins, request);
       return Optional.of(request);
     } catch (Exception e) {
-      logger.info("Failed to parse HTTP response message: " + e.getMessage());
+      logger.info("Failed to parse HTTP response message: " + e + " -> " + e.getStackTrace()[0]);
       return Optional.empty();
     }
   }
@@ -49,17 +49,17 @@ public final class RequestParser {
   private static void parseHeaders(Scanner tins, RequestMessage request) {
     String line;
     while (!(line = tins.nextLine()).equals("")) {
-      var headerline = line.split(":");
+      var headerline = line.split(":", 2);
       var fieldName = headerline[0].toLowerCase();
-      var fieldValue = headerline[1].trim();
+      var fieldValue = headerline[1].trim().split(",");
       GeneralHeader generalHeader;
       RequestHeaders specificHeader;
       if ((generalHeader = GeneralHeaders.getHeader(fieldName)) != null)
-        request.addHeader(generalHeader, fieldValue);
+        request.addHeaders(generalHeader, fieldValue);
       else if ((generalHeader = EntityHeaders.getHeader(fieldName)) != null)
-        request.addHeader(generalHeader, fieldValue);
+        request.addHeaders(generalHeader, fieldValue);
       else if ((specificHeader = RequestHeaders.getHeader(fieldName)) != null)
-        request.addHeader(specificHeader, fieldValue);
+        request.addHeaders(specificHeader, fieldValue);
       else
         logger.warn("Header field name not recognized: " + fieldName);
     }
@@ -69,7 +69,7 @@ public final class RequestParser {
     if (!request.containsHeader(GeneralHeaders.TransferEncoding) &&
       !request.containsHeader(EntityHeaders.ContentLength))
       return;
-    int contentLength = Integer.parseInt(request.getHeader(EntityHeaders.ContentLength));
+    int contentLength = Integer.parseInt(request.getHeader(EntityHeaders.ContentLength).get(0));
     var body = new byte[contentLength];
     var total = 0;
     while (total < contentLength)
